@@ -1,10 +1,25 @@
-const express = require('express');
-const router = express.Router();
-const TodoController = require('../controllers/todo.controller');
+// routes/task.routes.js
 
-router.post('/create', TodoController.createTodo);
-router.get('/get-all', TodoController.getAllTodos);
-router.put('/update/:todoId?', TodoController.updateTodo);
-router.delete('/delete/:todoId?', TodoController.deleteTodo);
+const express = require('express');
+const todoController = require('../controllers/todo.controller');
+const todoValidation = require('../validations/todo.validation');
+const { verifyToken } = require('../controllers/auth.controller');
+
+const router = express.Router();
+
+// Create a task
+router.post('/', todoController.createTodo);
+
+// Get all tasks
+router.get('/', todoController.getAllTodos);
+
+// Get a task by ID
+router.get('/:id', todoController.getTodoById);
+
+// Update a task by ID
+router.put('/:id', todoController.updateTodoById);
+
+// Delete a task by ID
+router.delete('/:id', todoController.deleteTodoById);
 
 module.exports = router;

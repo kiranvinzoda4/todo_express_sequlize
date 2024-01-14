@@ -1,94 +1,119 @@
-const { User } = require('../models'); // Import your User model
-const auth = require("./auth");
-// Create a new user
-exports.createUser = async (req, res) => {
+const { User } = require('../models');
+const { createUserValidation, UserLOginValidation } = require('../validations/user.validation');
+const auth = require("./auth.controller");
+const Joi = require("joi");
+const { createRecord, allRecord, getRecordById, updateRecord, deleteRecord, getRecordByField } = require('./crud.js');
+
+const createUser = async (req, res) => {
     try {
+        createUserValidation(req.body, res);
+
         const pass = req.body.password;
         const encryptedPassword = await auth.generatePassword(pass);
         req.body.password = encryptedPassword;
-        const data = await User.create(req.body);
-        if (data) {
-            res.status(200).json({
+
+        const user = await createRecord(User, req.body);
+        res.status(201).json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+const login = async (req, res) => {
+    try {
+        UserLOginValidation(req.body);
+        const { email, password } = req.body;
+        user_data = await getRecordByField(User, "email", email, res);
+        if (user_data) {
+            const test = await auth.comparePasswords(password, user_data.password);
+            if (test) {
+                delete user_data.password;
+                const token = auth.getToken(JSON.parse(JSON.stringify(user_data)));
+                res.json({
+                    error: false,
+                    message: "user data.",
+                    data: { "token": token, "user": user_data },
+                });
+            } else {
+                res.json({
+                    error: false,
+                    message: "Wrong password.",
+                    data: [],
+                });
+            }
+        } else {
+            res.json({
                 error: false,
-                message: "User has been created",
-                data: data,
+                message: "Email is not found.",
+                data: [],
             });
         }
     } catch (e) {
         console.log(e);
         res.json({ error: true, message: "Something went wrong", data: e });
     }
+    res.end();
 };
 
-exports.login = async (req, res) => {
-    const { email, password } = req.body;
-    user_data = await User.findOne({
-        where: {
-            email: email,
-        },
-    });
-    if (user_data) {
-        const test = await auth.comparePasswords(password, user_data.password);
-        if (test) {
-            delete user_data.password;
-            const token = auth.getToken(JSON.parse(JSON.stringify(user_data)));
-            res.json({
-                error: false,
-                message: "user data.",
-                data: { "token": token, "user": user_data },
-            });
-        } else {
-            res.json({
-                error: false,
-                message: "Wrong password.",
-                data: [],
-            });
-        }
-    } else {
-        res.json({
-            error: false,
-            message: "Email is not found.",
-            data: [],
-        });
-    }
-};
-
-// Retrieve all users
-exports.getAllUsers = async (req, res) => {
-
+const getAllUsers = async (req, res) => {
     try {
-        const users = await User.findAll();
+        const users = await allRecord(User);
         res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to retrieve users', message: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-// Update a user by ID
-exports.updateUser = async (req, res) => {
-    const { id } = req.params;
-    const { name, email } = req.body;
+const getUserById = async (req, res) => {
+    const userId = req.params.id;
     try {
-        const [updatedCount] = await User.update({ name, email }, { where: { id } });
-        if (updatedCount === 0) {
+        const user = await getRecordById(User, userId);
+        if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-        res.status(200).json({ message: 'User updated successfully' });
+        res.status(200).json(user);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to update user', message: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-// Delete a user by ID
-exports.deleteUser = async (req, res) => {
-    const { id } = req.params;
+const updateUserById = async (req, res) => {
+    const userId = req.params.id;
     try {
-        const deletedCount = await User.destroy({ where: { id } });
-        if (deletedCount === 0) {
+        createUserValidation(req.body, res);
+        const updatedUser = await updateRecord(User, userId, req.body);
+        if (!updatedUser) {
             return res.status(404).json({ error: 'User not found' });
         }
-        res.status(200).json({ message: 'User deleted successfully' });
+        res.status(200).json(updatedUser);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to delete user', message: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
+};
+
+const deleteUserById = async (req, res) => {
+    const userId = req.params.id;
+    try {
+        const deletedRowCount = await deleteRecord(User, userId);
+        if (deletedRowCount === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(204).end();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+module.exports = {
+    createUser,
+    getAllUsers,
+    getUserById,
+    updateUserById,
+    deleteUserById,
+    login,
 };

@@ -1,16 +1,5 @@
 # Todo APIs
 
-## Configuration ⚙️
-
-- Set environment variable
-  - DB_HOST
-  - DB_USER
-  - DB_PASSWORD
-  - DB_NAME
-  - DB_PORT
-  - JWT_KEY
-  - PW_SALT
-- Create an empty database in database server
 
 ## Generate Salt value
 
@@ -31,14 +20,24 @@
 - Copy value and use as `JWT_KEY`
 
 ## Quick Start 🚀
-- Install all librarys from package.json 
-- Run server: `npm install`
+
 - Open terminal in project root
 - Run server: `npm start`
 
-## Data Migrations We Are
+## Data Migrations
 
-- To create new migrations from model changes
-- `npx sequelize-cli model:generate --name ModelName --attributes name:string`
-- To update database with new changes
+- To create a new migration for model changes.
+- `npx sequelize-cli migration:generate --name migration_name`
+- To apply pending migrations and update the database.
 - `npx sequelize-cli db:migrate`
+- To undo the last batch of migrations
+- `npx sequelize-cli db:migrate:undo`
+
+## Data Seeders
+
+- To create a new seeder.
+- `npx sequelize-cli seed:generate --name SeederName`
+- To run seeders.
+- `npx sequelize-cli db:seed:all`
+- To undo the last batch of migrations
+- `npx sequelize-cli db:migrate:undo`

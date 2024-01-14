@@ -1,56 +1,78 @@
-const { Todo } = require('../models'); // Import your User model
+const { Todo } = require('../models');
+const { User } = require('../models');
+const { createTodoValidation } = require('../validations/todo.validation');
+const { responseTodo } = require('../responses/todo.response.js');
+const { createRecord, allRecord, getRecordById, updateRecord, deleteRecord } = require('./crud.js');
 
-// Create a new user
-exports.createTodo = async (req, res) => {
-    try {
-        userId = req.user.id;
-        const newUser = await Todo.create({ title: req.body.title, desc: req.body.desc, userId: userId });
-        res.status(201).json(newUser);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to create user', message: error.message });
-    }
-}
+const createTodo = async (req, res) => {
+  try {
+    createTodoValidation(req.body, res);
+    const todo = await createRecord(Todo, req.body);
+    return res.status(201).json(todo);
 
-// Retrieve all users
-exports.getAllTodos = async (req, res) => {
-    try {
-        const user_id = req.user.id;
-        const todos = await Todo.findAll({
-            where: {
-                userId: user_id,
-            },
-        });
-        res.status(200).json(todos);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to retrieve users', message: error.message });
-    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' }).end();
+  }
 };
 
-// Update a user by ID
-exports.updateTodo = async (req, res) => {
-    userId = req.user.id;
-    const todoId = req.params.todoId;
-    try {
-        const [updatedCount] = await Todo.update(req.body, { where: { id: todoId } });
-        if (updatedCount === 0) {
-            return res.status(404).json({ error: 'Todo not found' });
-        }
-        res.status(200).json({ message: 'Todo updated successfully' });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to update Todo', message: error.message });
-    }
+const getAllTodos = async (req, res) => {
+  try {
+    const todos = await allRecord(User);
+    return res.status(200).json(todos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' }).end();
+  }
 };
 
-// Delete a user by ID
-exports.deleteTodo = async (req, res) => {
-    const todoId = req.params.todoId;
-    try {
-        const deletedCount = await User.destroy({ where: { id: todoId } });
-        if (deletedCount === 0) {
-            return res.status(404).json({ error: 'Todo not found' });
-        }
-        res.status(200).json({ message: 'Todo deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to delete todo', message: error.message });
+const getTodoById = async (req, res) => {
+  const todoId = req.params.id;
+
+  try {
+    const todo = await getRecordById(Todo, todoId, [{
+      model: User,
+      attributes: ['id', 'username', 'email'],
+    }]);
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found." }).end();
+
     }
+    res.status(200).json(responseTodo(todo));
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' }).end();
+  }
+};
+
+const updateTodoById = async (req, res) => {
+  const todoId = req.params.id;
+  try {
+    createTodoValidation(req.body);
+    const [updatedRowsCount, updatedRows] = await updateRecord(Todo, todoId, req.body, res);
+    return res.status(200).json({ message: 'Todo updated successfully.' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' }).end();
+  }
+};
+
+// Delete a task by ID
+const deleteTodoById = async (req, res) => {
+  const todoId = req.params.id;
+  try {
+    await deleteRecord(Todo, todoId, res);
+    res.status(204).json({ message: 'Todo deleted successfully.' }).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+module.exports = {
+  createTodo,
+  getAllTodos,
+  getTodoById,
+  updateTodoById,
+  deleteTodoById,
 };

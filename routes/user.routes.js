@@ -1,11 +1,27 @@
+// routes/task.routes.js
+
 const express = require('express');
+const userController = require('../controllers/user.controller');
+const { verifyToken } = require('../controllers/auth.controller');
+
 const router = express.Router();
-const UserController = require('../controllers/user.controller');
 
-// Create a new user
-router.post('/create', UserController.createUser);
+// Create a task
+router.post('/', userController.createUser);
 
-// Retrieve all users
-router.get('/get-all', UserController.getAllUsers);
+// Create a task
+router.post('/login', userController.login);
+
+// Get all tasks
+router.get('/', verifyToken, userController.getAllUsers);
+
+// Get a task by ID
+router.get('/:id', verifyToken, userController.getUserById);
+
+// Update a task by ID
+router.put('/:id', verifyToken, userController.updateUserById);
+
+// Delete a task by ID
+router.delete('/:id', verifyToken, userController.deleteUserById);
 
 module.exports = router;

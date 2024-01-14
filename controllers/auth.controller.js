@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const saltRounds = "$2b$12$lS1yIssVmkBM8TLiPTqd1.";
-const secretKey = "sdkfsdkjf";
+const secretKey = "G4zpZuqwB453Ljw13aA4vKDLux6W";
 
 const getToken = (userPayload) => {
     const token_data = jwt.sign(userPayload, secretKey, { expiresIn: '1h' });
