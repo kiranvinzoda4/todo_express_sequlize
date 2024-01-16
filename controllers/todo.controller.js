@@ -3,13 +3,13 @@ const { User } = require('../models');
 const { createTodoValidation } = require('../validations/todo.validation');
 const { responseTodo } = require('../responses/todo.response.js');
 const { createRecord, allRecord, getRecordById, updateRecord, deleteRecord, getAllRecords } = require('./crud.js');
+const { sendEmail } = require('../helpers/functions.js');
 
 const createTodo = async (req, res) => {
   try {
     createTodoValidation(req.body, res);
     const todo = await createRecord(Todo, req.body);
     return res.status(201).json(todo);
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal Server Error' }).end();
@@ -36,7 +36,6 @@ const getTodoById = async (req, res) => {
     }]);
     if (!todo) {
       return res.status(404).json({ message: "Todo not found." }).end();
-
     }
     res.status(200).json(responseTodo(todo));
   } catch (error) {
@@ -57,7 +56,6 @@ const updateTodoById = async (req, res) => {
   }
 };
 
-// Delete a task by ID
 const deleteTodoById = async (req, res) => {
   const todoId = req.params.id;
   try {
@@ -87,11 +85,50 @@ const getAllTodosPaginated = async (req, res) => {
   }
 };
 
+const sendEmailTest = async (req, res) => {
+  try {
+    await sendEmail('kevin.panara@aeonx.digital', 'test email', '<h1>hello,This is test email</h1>');
+    res.status(204).json({ message: 'Todo deleted successfully.' }).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const uploadFile = async (req, res) => {
+  try {
+    if (req.files && Object.keys(req.files).length !== 0) {
+      const uploadedFiles = req.files;
+      console.log(uploadedFiles);
+      const file = uploadedFiles.file
+      if (!file) {
+        return res.status(400).send("No file uploaded!");
+      }
+      const uploadPath = __dirname + "/uploads/" + file.name;
+      file.mv(uploadPath, function (err) {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Failed to upload the file!");
+        }
+        return res.send("Successfully Uploaded!");
+      });
+    } else {
+      return res.status(400).send("No files uploaded!");
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
 module.exports = {
   createTodo,
   getAllTodos,
   getTodoById,
   updateTodoById,
   deleteTodoById,
-  getAllTodosPaginated
+  getAllTodosPaginated,
+  sendEmailTest,
+  uploadFile
 };

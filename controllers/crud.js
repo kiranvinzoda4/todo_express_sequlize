@@ -101,7 +101,6 @@ const getAllRecords = async (model, options = {}) => {
 };
 
 
-
 module.exports = {
     createRecord,
     allRecord,

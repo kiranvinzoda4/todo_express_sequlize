@@ -3,6 +3,8 @@ const { sequelize } = require('./models');
 const todoRoutes = require('./routes/todo.routes');
 const userRoutes = require('./routes/user.routes');
 const morgan = require('morgan');
+const fileUpload = require("express-fileupload");
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(morgan('combined'));
 
 app.use(express.json());
+app.use(fileUpload());
 
 app.use('/todo', todoRoutes);
 app.use('/user', userRoutes);
