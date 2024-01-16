@@ -7,11 +7,15 @@ const { verifyToken } = require('../controllers/auth.controller');
 
 const router = express.Router();
 
+// Get all tasks
+router.post('/all', todoController.getAllTodosPaginated);
+
 // Create a task
 router.post('/', todoController.createTodo);
 
 // Get all tasks
 router.get('/', todoController.getAllTodos);
+
 
 // Get a task by ID
 router.get('/:id', todoController.getTodoById);
@@ -21,5 +25,6 @@ router.put('/:id', todoController.updateTodoById);
 
 // Delete a task by ID
 router.delete('/:id', todoController.deleteTodoById);
+
 
 module.exports = router;

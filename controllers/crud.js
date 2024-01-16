@@ -1,3 +1,5 @@
+const { Op } = require('sequelize');
+
 const createRecord = async (model, data) => {
     const res = model.create(data);
     return res;
@@ -73,6 +75,32 @@ const getRecordByField = async (model, fieldName, fieldValue, res) => {
     }
 };
 
+const getAllRecords = async (model, options = {}) => {
+    try {
+        const queryOptions = {
+            ...options,
+        };
+        if (options.search) {
+            const fields = Object.keys(model.rawAttributes);
+
+            queryOptions.where = {
+                [Op.or]: fields.map(field => ({
+                    [field]: {
+                        [Op.like]: `%${options.search}%`
+                    }
+                }))
+            };
+        }
+
+        const records = await model.findAll(queryOptions);
+        return records;
+    } catch (error) {
+        console.error(error);
+        throw new Error('Error while fetching records.');
+    }
+};
+
+
 
 module.exports = {
     createRecord,
@@ -81,4 +109,5 @@ module.exports = {
     updateRecord,
     deleteRecord,
     getRecordByField,
+    getAllRecords,
 };

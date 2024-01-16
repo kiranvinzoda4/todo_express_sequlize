@@ -2,7 +2,7 @@ const { Todo } = require('../models');
 const { User } = require('../models');
 const { createTodoValidation } = require('../validations/todo.validation');
 const { responseTodo } = require('../responses/todo.response.js');
-const { createRecord, allRecord, getRecordById, updateRecord, deleteRecord } = require('./crud.js');
+const { createRecord, allRecord, getRecordById, updateRecord, deleteRecord, getAllRecords } = require('./crud.js');
 
 const createTodo = async (req, res) => {
   try {
@@ -69,10 +69,29 @@ const deleteTodoById = async (req, res) => {
   }
 };
 
+const getAllTodosPaginated = async (req, res) => {
+  try {
+
+    const options = {
+      order: [[req.body.sortBy ? req.body.sortBy : 'createdAt', req.body.order ? req.body.order : 'DESC']],
+      limit: req.body.pagesize ? parseInt(req.body.pagesize, 10) : 10,
+      offset: req.body.page ? (parseInt(req.body.page, 10) - 1) * parseInt(req.body.pagesize, 10) : 0,
+      search: req.body.search ? req.body.search : null,
+    };
+
+    const todos = await getAllRecords(Todo, options);
+    return res.status(200).json(todos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' }).end();
+  }
+};
+
 module.exports = {
   createTodo,
   getAllTodos,
   getTodoById,
   updateTodoById,
   deleteTodoById,
+  getAllTodosPaginated
 };
